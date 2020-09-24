@@ -23,6 +23,7 @@ class KnnDemoApp():
         self.root = Tk()
         self.root.title("KNN Demo")
         self.root.geometry('800x520')
+        self.root.resizable(False, False)
 
         self.axis = Canvas(self.root, width=720, height=370)
         self.axis.grid(column=0, row=0, columnspan=5)
