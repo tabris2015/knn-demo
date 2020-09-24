@@ -13,9 +13,11 @@ class KnnDemoApp():
     SIZE = 3
     MARKS = ['X', 'O']
     MODES = ['DATASET', 'PREDICCION']
+
     def __init__(self):
         self.points = []
         self.labels = []
+        self.lines = []
         self.knn = Knn()
 
         self.root = Tk()
@@ -28,7 +30,8 @@ class KnnDemoApp():
         self.axis.bind('<Button 1>', self.clickCallback)
         self.axis_points = []
         self.axis_predictions = []
-        self.debug_lbl = Label(self.root, text='Mensaje:')
+
+        self.debug_lbl = Label(self.root, text='Mensaje ==>')
         self.debug_lbl.grid(column=0, row=1)
 
         self.debug_msg = Label(self.root, text='-')
@@ -37,19 +40,25 @@ class KnnDemoApp():
         self.init_btn = Button(self.root, text='Reiniciar', command=self.cleanHandler)
         self.init_btn.grid(column=5, row=2)
 
-        self.class_lbl = Label(self.root, text='Clase:')
+        self.class_lbl = Label(self.root, text='Clase ==>')
         self.class_lbl.grid(column=0, row=2)
 
         self.current_mark = self.MARKS[0]
         self.class_btn = Button(self.root, text=self.current_mark, command=self.classButtonHandler)
         self.class_btn.grid(column=1, row=2)
 
-        self.mode_lbl = Label(self.root, text='MODO:')
+        self.mode_lbl = Label(self.root, text='MODO ==>')
         self.mode_lbl.grid(column=2, row=2)
 
         self.current_mode = self.MODES[0]
         self.mode_btn = Button(self.root, text=self.current_mode, command=self.modeButtonHandler)
         self.mode_btn.grid(column=3, row=2)
+
+        self.k_lbl = Label(self.root, text='K ==>')
+        self.k_lbl.grid(column=2, row=3)
+
+        self.k_txt = Entry(self.root, width=2, text='3')
+        self.k_txt.grid(column=3, row=3)
 
         self.root.mainloop()
 
@@ -78,7 +87,9 @@ class KnnDemoApp():
         for p in self.axis_predictions:
             self.axis.delete(p)
         self.axis_predictions = []
-
+        for l in self.lines:
+            self.axis.delete(l)
+        self.lines = []
 
     def clickCallback(self, event):
         x = event.x
@@ -86,23 +97,54 @@ class KnnDemoApp():
         if self.current_mode == 'DATASET':
             self.points.append((x, y))
             self.labels.append(1 if self.current_mark == 'X' else 0)
-            self.axis_points.append(self.axis.create_text(x, y, text=self.current_mark))
+            self.axis_points.append(
+                self.axis.create_text(
+                    x,
+                    y,
+                    text=self.current_mark,
+                    fill='red' if self.current_mark == 'X' else 'dark green'
+                )
+            )
         else:
             # predict knn
             self.predictKnn(x, y)
         print(event.x, event.y)
 
     def predictKnn(self, x_ex, y_ex):
+        # clean previous lines
+        for l in self.lines:
+            self.axis.delete(l)
+        self.lines = []
         # set up dataset
         X = np.array(self.points)
         y = np.array(self.labels)
         example = np.array([x_ex, y_ex])
-        k = 3
+        k = int(self.k_txt.get())
+        print(f'k: {k}')
         # call Knn class
-        prediction = 'X' if self.knn.predict(X, y, example, k) == 1 else 'O'
-        # draw prediction
-        self.axis_predictions.append(self.axis.create_text(x_ex, y_ex, text=prediction, fill='red'))
+        pred_label, neighbors, labels = self.knn.predict(X, y, example, k)
+        prediction = 'X' if pred_label == 1 else 'O'
         # draw knn lines
+        for n, label in zip(neighbors, labels):
+            print(n, label)
+            line = self.axis.create_line(
+                n[0],
+                n[1],
+                x_ex,
+                y_ex,
+                fill='coral' if label == 1 else 'lime green')
+            self.lines.append(line)
+
+        # draw prediction
+        self.axis_predictions.append(
+            self.axis.create_text(
+                x_ex,
+                y_ex,
+                text=prediction,
+                fill='indian red' if pred_label == 1 else 'OliveDrab4',
+                font=('freemono', 14, 'bold')
+            )
+        )
 
 
 if __name__ == '__main__':
