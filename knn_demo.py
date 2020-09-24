@@ -1,5 +1,7 @@
+import numpy as np
 from tkinter import *
 from tkinter.ttk import *
+from knn import Knn
 from time import sleep
 import random
 from random import randint
@@ -13,6 +15,8 @@ class KnnDemoApp():
     MODES = ['DATASET', 'PREDICCION']
     def __init__(self):
         self.points = []
+        self.labels = []
+        self.knn = Knn()
 
         self.root = Tk()
         self.root.title("KNN Demo")
@@ -23,7 +27,7 @@ class KnnDemoApp():
         self.axis.configure(bg='white')
         self.axis.bind('<Button 1>', self.clickCallback)
         self.axis_points = []
-
+        self.axis_predictions = []
         self.debug_lbl = Label(self.root, text='Mensaje:')
         self.debug_lbl.grid(column=0, row=1)
 
@@ -71,17 +75,34 @@ class KnnDemoApp():
         for p in self.axis_points:
             self.axis.delete(p)
         self.axis_points = []
+        for p in self.axis_predictions:
+            self.axis.delete(p)
+        self.axis_predictions = []
+
 
     def clickCallback(self, event):
         x = event.x
         y = event.y
         if self.current_mode == 'DATASET':
-            self.points.append(((x, y), self.current_mark))
+            self.points.append((x, y))
+            self.labels.append(1 if self.current_mark == 'X' else 0)
             self.axis_points.append(self.axis.create_text(x, y, text=self.current_mark))
         else:
             # predict knn
-            pass
+            self.predictKnn(x, y)
         print(event.x, event.y)
+
+    def predictKnn(self, x_ex, y_ex):
+        # set up dataset
+        X = np.array(self.points)
+        y = np.array(self.labels)
+        example = np.array([x_ex, y_ex])
+        k = 3
+        # call Knn class
+        prediction = 'X' if self.knn.predict(X, y, example, k) == 1 else 'O'
+        # draw prediction
+        self.axis_predictions.append(self.axis.create_text(x_ex, y_ex, text=prediction, fill='red'))
+        # draw knn lines
 
 
 if __name__ == '__main__':
