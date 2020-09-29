@@ -82,15 +82,17 @@ class KnnDemoApp():
             self.current_mark = self.MARKS[0]
 
     def cleanHandler(self):
-        for p in self.axis_points:
+        for p in self.axis_points: 
             self.axis.delete(p)
-        self.axis_points = []
-        for p in self.axis_predictions:
-            self.axis.delete(p)
-        self.axis_predictions = []
+        del self.axis_points[:]
+        for pr in self.axis_predictions: 
+            self.axis.delete(pr)
+        del self.axis_predictions[:]
         for l in self.lines:
             self.axis.delete(l)
-        self.lines = []
+        del self.lines[:]
+        self.points = [] 
+        self.labels = []
 
     def clickCallback(self, event):
         x = event.x
